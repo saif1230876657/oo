@@ -1,77 +1,130 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مساعد صوتي تفاعلي (ينطق كل شيء)</title>
+    <title>مساعد صوتي متطور بصريًا</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
 
         :root {
-            --primary-color: #007bff;
-            --secondary-color: #6c757d;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
-            --info-color: #17a2b8;
+            --primary-color: #007bff; /* أزرق جذاب */
+            --secondary-color: #6c757d; /* رمادي ثانوي */
+            --success-color: #28a745; /* أخضر للنجاح */
+            --danger-color: #dc3545; /* أحمر للخطر */
+            --warning-color: #ffc107; /* أصفر للتحذير */
+            --info-color: #17a2b8; /* سماوي للمعلومات */
+            --light-color: #f8f9fa; /* لون فاتح للخلفية */
+            --dark-color: #343a40; /* لون داكن للنص الأساسي */
             --font-family: 'Tajawal', sans-serif;
-            --border-radius: 8px;
+            --border-radius: 12px; /* زوايا أكثر استدارة */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.075);
+            --shadow-md: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         body {
             font-family: var(--font-family);
-            background-color: var(--light-color);
+            background: linear-gradient(135deg, #e9ecef, #dee2e6); /* خلفية متدرجة لطيفة */
             color: var(--dark-color);
             margin: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center; /* توسيط المحتوى عموديًا */
             min-height: 100vh;
             box-sizing: border-box;
             line-height: 1.7;
+            overflow-x: hidden; /* لمنع أي شريط تمرير أفقي غير مرغوب فيه */
         }
 
         .container {
-            background-color: #fff;
-            padding: 25px 30px;
+            background-color: #ffffff;
+            padding: 30px 35px;
             border-radius: var(--border-radius);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-md);
             width: 90%;
-            max-width: 750px;
+            max-width: 800px; /* زيادة العرض قليلاً */
             text-align: center;
+            transition: all 0.3s ease-in-out;
         }
 
         h1 {
             color: var(--primary-color);
-            margin-bottom: 20px;
-            font-size: 2em;
+            margin-bottom: 25px;
+            font-size: 2.3em;
+            font-weight: 700;
         }
         
         #status {
             font-style: italic;
             color: var(--secondary-color);
-            margin-bottom: 20px;
-            min-height: 20px; /* To prevent layout shift */
+            margin-bottom: 25px;
+            min-height: 22px; 
+            font-size: 1.05em;
         }
 
+        /* Voice Activity Orb */
+        .voice-orb-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            height: 100px; /* مساحة كافية للكرة والأنيميشن */
+        }
+
+        #voiceOrb {
+            width: 70px;
+            height: 70px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+            transition: transform 0.3s ease-out, background-color 0.3s ease;
+        }
+
+        #voiceOrb.listening {
+            animation: pulseListening 1.5s infinite;
+            background-color: var(--success-color); /* أخضر عند الاستماع */
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.7);
+        }
+
+        #voiceOrb.speaking {
+            animation: pulseSpeaking 1.2s infinite;
+            background-color: var(--info-color); /* سماوي عند تحدث المساعد */
+            box-shadow: 0 0 20px rgba(23, 162, 184, 0.7);
+        }
+
+        @keyframes pulseListening {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.8; }
+        }
+
+        @keyframes pulseSpeaking {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(23, 162, 184, 0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(23, 162, 184, 0.8); }
+            100% { transform: scale(1); box-shadow: 0 0 15px rgba(23, 162, 184, 0.5); }
+        }
+
+
         #startButton {
-            background-color: var(--success-color);
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px 28px;
-            font-size: 1.15em;
+            padding: 14px 30px;
+            font-size: 1.2em;
             font-family: var(--font-family);
+            font-weight: 500;
             border-radius: var(--border-radius);
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.1s ease;
-            box-shadow: 0 3px 7px rgba(0,0,0,0.15);
-            margin-bottom: 25px;
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 30px;
         }
 
         #startButton:hover {
-            background-color: #218838;
+            background-color: #0056b3; /* أزرق أغمق عند المرور */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
         
         #startButton:active {
@@ -82,24 +135,31 @@
             background-color: var(--danger-color);
         }
         #startButton.listening:hover {
-            background-color: #c82333;
+            background-color: #c82333; /* أحمر أغمق */
         }
 
         .conversation-area {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 18px; /* زيادة المسافة بين الفقاعات */
             text-align: right; 
+            max-height: 40vh; /* تحديد ارتفاع أقصى لمنطقة المحادثة */
+            overflow-y: auto; /* إضافة شريط تمرير عند الحاجة */
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            background-color: #fdfdfd; /* لون خلفية خفيف لمنطقة المحادثة */
         }
         
         .message-bubble {
-            padding: 12px 18px;
+            padding: 14px 20px; /* زيادة الحشو الداخلي */
             border-radius: var(--border-radius);
-            max-width: 80%;
+            max-width: 75%; /* تقليل العرض الأقصى قليلاً */
             word-wrap: break-word;
-            opacity: 0; /* Start hidden for animation */
-            transform: translateY(10px); /* Start slightly down for animation */
-            animation: fadeInBubble 0.3s forwards;
+            opacity: 0; 
+            transform: translateY(15px); 
+            animation: fadeInBubble 0.4s forwards;
+            box-shadow: var(--shadow-sm);
         }
 
         @keyframes fadeInBubble {
@@ -110,7 +170,7 @@
         }
 
         .user-message {
-            background-color: #e7f3ff;
+            background-color: #e0f0ff; /* لون أفتح لرسالة المستخدم */
             color: #004085;
             border: 1px solid #b8daff;
             align-self: flex-start; 
@@ -118,27 +178,27 @@
         }
         
         .assistant-message {
-            background-color: #f0f0f0;
+            background-color: #f1f3f5; /* لون أفتح لرسالة المساعد */
             color: var(--dark-color);
-            border: 1px solid #d6d6d6;
+            border: 1px solid #ced4da;
             align-self: flex-end; 
             margin-right: auto; 
         }
         
         .message-bubble .label {
-            font-weight: bold;
-            font-size: 0.9em;
+            font-weight: 700; /* خط أثقل للعنوان */
+            font-size: 0.95em;
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
         }
         
         .message-bubble p {
             margin: 0;
-            font-size: 1.05em;
+            font-size: 1.1em;
         }
         
         #userSaidWrapper, #assistantSaidWrapper {
-            min-height: 50px; 
+            min-height: 55px; 
             display: flex; 
         }
         
@@ -154,20 +214,41 @@
         }
 
         .footer {
-            margin-top: 30px;
+            margin-top: 35px;
             font-size: 0.9em;
             color: var(--secondary-color);
         }
+
+        /* Scrollbar styling for conversation area (WebKit browsers) */
+        .conversation-area::-webkit-scrollbar {
+            width: 8px;
+        }
+        .conversation-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: var(--border-radius);
+        }
+        .conversation-area::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: var(--border-radius);
+        }
+        .conversation-area::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>مساعد صوتي تفاعلي (ينطق كل شيء)</h1>
+        <h1>مساعد صوتي متطور</h1>
         <div id="status">اضغط على "ابدأ التحدث" وتكلم...</div>
+
+        <div class="voice-orb-container">
+            <div id="voiceOrb"></div>
+        </div>
         
         <button id="startButton">ابدأ التحدث</button>
 
-        <div class="conversation-area">
+        <div class="conversation-area" id="conversationArea">
             <div id="userSaidWrapper">
                 <!-- User's speech will be injected here -->
             </div>
@@ -187,15 +268,17 @@
             const userSaidWrapper = document.getElementById('userSaidWrapper');
             const assistantSaidWrapper = document.getElementById('assistantSaidWrapper');
             const statusDisplay = document.getElementById('status');
+            const voiceOrb = document.getElementById('voiceOrb');
+            const conversationArea = document.getElementById('conversationArea');
 
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const speechSynthesis = window.speechSynthesis;
 
             if (!SpeechRecognition || !speechSynthesis) {
-                statusDisplay.textContent = "عذراً، متصفحك لا يدعم واجهات برمجة تطبيقات الصوت المطلوبة.";
+                const errorMsg = "عذراً، متصفحك لا يدعم واجهات برمجة تطبيقات الصوت المطلوبة.";
+                statusDisplay.textContent = errorMsg;
                 startButton.disabled = true;
-                // يمكننا أيضاً نطق هذه الرسالة إذا أردنا ذلك، ولكنها رسالة تهيئة
-                // speak("عذراً، متصفحك لا يدعم واجهات برمجة تطبيقات الصوت المطلوبة."); 
+                if (speechSynthesis && SpeechSynthesisUtterance) speak(errorMsg);
                 return;
             }
 
@@ -208,8 +291,12 @@
             let lastUserTranscript = ""; 
 
             startButton.addEventListener('click', () => {
+                if (speechSynthesis.speaking) {
+                    speechSynthesis.cancel(); // أوقف أي كلام حالي للمساعد
+                    voiceOrb.classList.remove('speaking');
+                }
                 if (isListening) {
-                    recognition.stop();
+                    recognition.stop(); // سيتم تحديث الحالة في onend
                 } else {
                     clearMessages();
                     try {
@@ -219,16 +306,16 @@
                         const errorMsg = "خطأ: لم يتمكن من بدء الاستماع. تأكد من سماح الميكروفون.";
                         statusDisplay.textContent = errorMsg;
                         displayMessage(errorMsg, 'assistant', true);
-                        speak(errorMsg); // نطق رسالة الخطأ
+                        speak(errorMsg);
                         isListening = false; 
-                        updateButtonState();
+                        updateButtonAndOrbState();
                     }
                 }
             });
 
             recognition.onstart = () => {
                 isListening = true;
-                updateButtonState();
+                updateButtonAndOrbState();
                 statusDisplay.textContent = 'الآن يمكنك التحدث...';
                 clearMessages(); 
             };
@@ -241,23 +328,21 @@
             };
 
             recognition.onspeechend = () => {
-                recognition.stop(); 
+                // ليس بالضرورة أن يتوقف الاستماع هنا فوراً، فقط المستخدم توقف عن الكلام
+                // recognition.stop(); // onend سيتولى الأمر
                 statusDisplay.textContent = 'توقفت عن التحدث، انتظر الرد...';
             };
 
             recognition.onend = () => {
-                isListening = false;
-                updateButtonState();
+                isListening = false; // الاستماع توقف نهائياً
+                updateButtonAndOrbState(); // تحديث الكرة والزر
 
                 if (lastUserTranscript) {
                     processUserSpeech(lastUserTranscript);
                     lastUserTranscript = ""; 
-                } else if (!isListening && startButton.textContent.includes("أوقف")) { 
+                } else { 
                     const noSpeechMsg = 'لم يتم التقاط أي كلام. اضغط للبدء من جديد.';
                     statusDisplay.textContent = noSpeechMsg;
-                    // إذا أردت أن ينطق المساعد هذه الرسالة أيضاً:
-                    // displayMessage(noSpeechMsg, 'assistant');
-                    // speak(noSpeechMsg);
                 }
             };
 
@@ -275,19 +360,23 @@
                 }
                 statusDisplay.textContent = errorMessage;
                 displayMessage(errorMessage, 'assistant', true); 
-                speak(errorMessage); // *** هذا هو التعديل الرئيسي: نطق رسالة الخطأ ***
+                speak(errorMessage); 
                 isListening = false;
-                updateButtonState();
+                updateButtonAndOrbState();
                 lastUserTranscript = ""; 
             };
 
-            function updateButtonState() {
+            function updateButtonAndOrbState() {
                 if (isListening) {
                     startButton.textContent = 'أوقف الاستماع';
                     startButton.classList.add('listening');
+                    voiceOrb.classList.add('listening');
+                    voiceOrb.classList.remove('speaking'); // لا يمكن أن يكون يستمع ويتحدث في نفس الوقت
                 } else {
                     startButton.textContent = 'ابدأ التحدث';
                     startButton.classList.remove('listening');
+                    voiceOrb.classList.remove('listening');
+                    // لا نزيل 'speaking' من هنا، لأن المساعد قد يكون لا يزال يتحدث
                 }
             }
 
@@ -295,10 +384,15 @@
                 userSaidWrapper.innerHTML = '';
                 assistantSaidWrapper.innerHTML = '';
             }
+            
+            function scrollToBottom(element) {
+                element.scrollTop = element.scrollHeight;
+            }
 
             function displayMessage(text, sender, isError = false) {
                 const messageWrapper = (sender === 'user') ? userSaidWrapper : assistantSaidWrapper;
-                messageWrapper.innerHTML = ''; 
+                // لا نمسح المحتوى السابق، بل نضيف إليه
+                // messageWrapper.innerHTML = ''; 
 
                 const bubble = document.createElement('div');
                 bubble.classList.add('message-bubble');
@@ -319,7 +413,14 @@
 
                 bubble.appendChild(label);
                 bubble.appendChild(messageP);
-                messageWrapper.appendChild(bubble);
+                
+                // إضافة الفقاعة إلى الحاوية الصحيحة
+                if (sender === 'user') {
+                    userSaidWrapper.appendChild(bubble);
+                } else {
+                    assistantSaidWrapper.appendChild(bubble);
+                }
+                scrollToBottom(conversationArea); // تمرير لأسفل لعرض أحدث رسالة
             }
 
             function processUserSpeech(text) {
@@ -332,7 +433,7 @@
                 } else if (lowerText.includes("كيف حالك") || lowerText.includes("عامل إيه")) {
                     responseText = "أنا بخير، شكراً لسؤالك! كيف يمكنني مساعدتك؟";
                 } else if (lowerText.includes("ما اسمك") || lowerText.includes("مين إنت")) {
-                    responseText = "أنا مساعدك الصوتي التفاعلي.";
+                    responseText = "أنا مساعدك الصوتي المتطور.";
                 } else if (lowerText.includes("وقت") || lowerText.includes("ساعة")) {
                     const now = new Date();
                     const hours = now.getHours();
@@ -350,19 +451,16 @@
                 }
                 
                 displayMessage(responseText, 'assistant');
-                speak(responseText); // المساعد ينطق رده
+                speak(responseText); 
                 statusDisplay.textContent = 'تم الرد. اضغط للبدء من جديد.';
             }
 
             function speak(text) {
-                if (!text || text.trim() === "") return; // لا تنطق نص فارغ
+                if (!text || text.trim() === "") return; 
 
                 if (speechSynthesis.speaking) {
-                    console.warn('SpeechSynthesis لا يزال يتحدث، تم إلغاء الطلب الجديد.');
                     speechSynthesis.cancel(); 
-                    // تأخير بسيط قد يكون مفيدًا في بعض الأحيان لضمان الإلغاء قبل البدء
-                    setTimeout(() => actualSpeak(text), 50);
-                    return;
+                    // لا حاجة لـ setTimeout إذا تم التعامل مع Orb في onstart/onend الخاص بـ utterance
                 }
                 actualSpeak(text);
             }
@@ -385,26 +483,41 @@
                 utterance.pitch = 1;
                 utterance.rate = 1; 
 
+                utterance.onstart = () => {
+                    console.log("المساعد بدأ الكلام.");
+                    voiceOrb.classList.add('speaking');
+                    voiceOrb.classList.remove('listening'); // ضمان
+                };
+
                 utterance.onend = () => {
                     console.log("انتهى المساعد من الكلام.");
+                    voiceOrb.classList.remove('speaking');
+                    // لا نغير حالة الزر هنا، لأن المستخدم قد يبدأ التحدث مباشرة
                 };
                 utterance.onerror = (event) => {
                     console.error('خطأ في نطق الكلام:', event);
-                    // يمكنك اختيار عرض رسالة خطأ هنا أو محاولة نطق رسالة خطأ بديلة
-                    // statusDisplay.textContent = "حدث خطأ أثناء محاولة نطق الرد.";
+                    voiceOrb.classList.remove('speaking');
                 };
 
                 speechSynthesis.speak(utterance);
             }
 
-            if (speechSynthesis.onvoiceschanged !== undefined) {
-                speechSynthesis.onvoiceschanged = () => {
-                    speechSynthesis.getVoices(); // تحديث قائمة الأصوات
-                };
+            // تحميل الأصوات
+            function loadVoices() {
+                const voices = speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    console.log("الأصوات محملة:", voices.map(v=>v.name + " (" + v.lang + ")"));
+                } else {
+                    console.log("لا تزال الأصوات غير محملة، سيتم المحاولة مرة أخرى عند onvoiceschanged.");
+                }
             }
-            speechSynthesis.getVoices(); 
 
-            updateButtonState(); 
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = loadVoices;
+            }
+            loadVoices(); // محاولة تحميلها مبدئياً
+
+            updateButtonAndOrbState(); 
         });
     </script>
 </body>
