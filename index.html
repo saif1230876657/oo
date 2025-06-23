@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مساعد صوتي تفاعلي</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --info-color: #17a2b8;
+            --font-family: 'Tajawal', sans-serif;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            line-height: 1.7;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 25px 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 750px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        
+        #status {
+            font-style: italic;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            min-height: 20px; /* To prevent layout shift */
+        }
+
+        #startButton {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1.15em;
+            font-family: var(--font-family);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 3px 7px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+        }
+
+        #startButton:hover {
+            background-color: #218838;
+        }
+        
+        #startButton:active {
+            transform: scale(0.97);
+        }
+
+        #startButton.listening {
+            background-color: var(--danger-color);
+        }
+        #startButton.listening:hover {
+            background-color: #c82333;
+        }
+
+        .conversation-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: right; /* Default for Arabic */
+        }
+        
+        .message-bubble {
+            padding: 12px 18px;
+            border-radius: var(--border-radius);
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background-color: #e7f3ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+            align-self: flex-start; /* For LTR this would be user, for RTL this is assistant */
+            margin-left: auto; /* Push to right for user in RTL */
+        }
+        
+        .assistant-message {
+            background-color: #f0f0f0;
+            color: var(--dark-color);
+            border: 1px solid #d6d6d6;
+            align-self: flex-end; /* For LTR this would be assistant, for RTL this is user */
+            margin-right: auto; /* Push to left for assistant in RTL */
+        }
+        
+        .message-bubble .label {
+            font-weight: bold;
+            font-size: 0.9em;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .message-bubble p {
+            margin: 0;
+            font-size: 1.05em;
+        }
+        
+        #userSaidWrapper, #assistantSaidWrapper {
+            min-height: 50px; /* Ensure space even when empty */
+            display: flex; /* To help with alignment if needed */
+        }
+        
+        /* RTL specific adjustments for bubble alignment */
+        html[dir="rtl"] .user-message {
+            align-self: flex-end; /* User's message on the right */
+            margin-left: 0;
+            margin-right: auto;
+        }
+        html[dir="rtl"] .assistant-message {
+            align-self: flex-start; /* Assistant's message on the left */
+            margin-right: 0;
+            margin-left: auto;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>مساعد صوتي تفاعلي</h1>
+        <div id="status">اضغط على "ابدأ التحدث" وتكلم...</div>
+        
+        <button id="startButton">ابدأ التحدث</button>
+
+        <div class="conversation-area">
+            <div id="userSaidWrapper">
+                <!-- User's speech will be injected here -->
+            </div>
+            <div id="assistantSaidWrapper">
+                <!-- Assistant's response will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        يستخدم هذا الموقع واجهة برمجة تطبيقات الويب للتعرف على الكلام والنطق.
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startButton = document.getElementById('startButton');
+            const userSaidWrapper = document.getElementById('userSaidWrapper');
+            const assistantSaidWrapper = document.getElementById('assistantSaidWrapper');
+            const statusDisplay = document.getElementById('status');
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const speechSynthesis = window.speechSynthesis;
+
+            if (!SpeechRecognition || !speechSynthesis) {
+                statusDisplay.textContent = "عذراً، متصفحك لا يدعم واجهات برمجة تطبيقات الصوت المطلوبة.";
+                startButton.disabled = true;
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'ar-SA'; // اللغة العربية
+            recognition.interimResults = false; // لا نريد نتائج مؤقتة، فقط النهائية
+            recognition.continuous = false; // سيتوقف بعد فترة صمت واحدة
+
+            let isListening = false;
+            let lastUserTranscript = ""; // لتخزين ما قاله المستخدم
+
+            startButton.addEventListener('click', () => {
+                if (isListening) {
+                    recognition.stop();
+                    // isListening and button text will be updated in onend
+                } else {
+                    clearMessages();
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.error("خطأ عند بدء التعرف:", e);
+                        statusDisplay.textContent = "خطأ: لم يتمكن من بدء الاستماع. تأكد من سماح الميكروفون.";
+                        isListening = false; // Ensure state is correct
+                        updateButtonState();
+                    }
+                }
+            });
+
+            recognition.onstart = () => {
+                isListening = true;
+                updateButtonState();
+                statusDisplay.textContent = 'الآن يمكنك التحدث...';
+                clearMessages(); // Clear previous messages on new start
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                lastUserTranscript = transcript; // خزن النص
+                displayMessage(transcript, 'user');
+                statusDisplay.textContent = 'تم التعرف على كلامك، جاري المعالجة...';
+            };
+
+            recognition.onspeechend = () => {
+                // هذا الحدث يطلق عندما يتوقف المستخدم عن الكلام
+                recognition.stop(); // أوقف التعرف رسمياً
+                statusDisplay.textContent = 'توقفت عن التحدث، انتظر الرد...';
+            };
+
+            recognition.onend = () => {
+                // هذا الحدث يطلق بعد onspeechend وعندما يتوقف التعرف تماماً
+                isListening = false;
+                updateButtonState();
+
+                if (lastUserTranscript) {
+                    processUserSpeech(lastUserTranscript);
+                    lastUserTranscript = ""; // امسح النص بعد المعالجة
+                } else if (!isListening && startButton.textContent.includes("أوقف")) { 
+                    // إذا لم يتم التعرف على شيء (مثلاً لم يتكلم المستخدم)
+                    statusDisplay.textContent = 'لم يتم التقاط أي كلام. اضغط للبدء من جديد.';
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('خطأ في التعرف على الكلام:', event.error);
+                let errorMessage = 'حدث خطأ: ';
+                if (event.error === 'no-speech') {
+                    errorMessage += 'لم يتم التقاط أي كلام.';
+                } else if (event.error === 'audio-capture') {
+                    errorMessage += 'مشكلة في الميكروفون. تأكد من أنه يعمل ومسموح به.';
+                } else if (event.error === 'not-allowed') {
+                    errorMessage += 'لم يتم منح الإذن لاستخدام الميكروفون.';
+                } else {
+                    errorMessage += event.error;
+                }
+                statusDisplay.textContent = errorMessage;
+                displayMessage(errorMessage, 'assistant', true); // Display error as assistant message
+                isListening = false;
+                updateButtonState();
+                lastUserTranscript = ""; // Clear any partial transcript
+            };
+
+            function updateButtonState() {
+                if (isListening) {
+                    startButton.textContent = 'أوقف الاستماع';
+                    startButton.classList.add('listening');
+                } else {
+                    startButton.textContent = 'ابدأ التحدث';
+                    startButton.classList.remove('listening');
+                }
+            }
+
+            function clearMessages() {
+                userSaidWrapper.innerHTML = '';
+                assistantSaidWrapper.innerHTML = '';
+            }
+
+            function displayMessage(text, sender, isError = false) {
+                const messageWrapper = (sender === 'user') ? userSaidWrapper : assistantSaidWrapper;
+                messageWrapper.innerHTML = ''; // Clear previous message from this sender
+
+                const bubble = document.createElement('div');
+                bubble.classList.add('message-bubble');
+                bubble.classList.add(sender === 'user' ? 'user-message' : 'assistant-message');
+                
+                if (isError && sender === 'assistant') {
+                    bubble.style.backgroundColor = '#f8d7da';
+                    bubble.style.color = '#721c24';
+                    bubble.style.borderColor = '#f5c6cb';
+                }
+
+                const label = document.createElement('span');
+                label.classList.add('label');
+                label.textContent = (sender === 'user') ? 'أنت قلت:' : 'المساعد يقول:';
+                
+                const messageP = document.createElement('p');
+                messageP.textContent = text;
+
+                bubble.appendChild(label);
+                bubble.appendChild(messageP);
+                messageWrapper.appendChild(bubble);
+            }
+
+            function processUserSpeech(text) {
+                let responseText = "لم أفهم ما قلته. هل يمكنك المحاولة مرة أخرى؟"; // رد افتراضي
+
+                const lowerText = text.toLowerCase(); // لتسهيل المقارنة
+
+                if (lowerText.includes("أهلا") || lowerText.includes("سلام عليكم")) {
+                    responseText = "وعليكم السلام ورحمة الله! كيف حالك اليوم؟";
+                } else if (lowerText.includes("كيف حالك") || lowerText.includes("عامل إيه")) {
+                    responseText = "أنا بخير، شكراً لسؤالك! كيف يمكنني مساعدتك؟";
+                } else if (lowerText.includes("ما اسمك") || lowerText.includes("مين إنت")) {
+                    responseText = "أنا مساعدك الصوتي التفاعلي.";
+                } else if (lowerText.includes("وقت") || lowerText.includes("ساعة")) {
+                    const now = new Date();
+                    const hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const ampm = hours >= 12 ? 'مساءً' : 'صباحاً';
+                    const formattedHours = hours % 12 || 12; // Handle midnight (0) and noon (12)
+                    const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+                    responseText = `الوقت الآن هو ${formattedHours}:${formattedMinutes} ${ampm}.`;
+                } else if (lowerText.includes("شكرا") || lowerText.includes("متشكر")) {
+                    responseText = "على الرحب والسعة! سعيد بمساعدتك.";
+                } else if (lowerText.includes("يوم") && lowerText.includes("تاريخ")) {
+                    const today = new Date();
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    responseText = `تاريخ اليوم هو ${today.toLocaleDateString('ar-EG', options)}.`;
+                }
+                
+                displayMessage(responseText, 'assistant');
+                speak(responseText);
+                statusDisplay.textContent = 'تم الرد. اضغط للبدء من جديد.';
+            }
+
+            function speak(text) {
+                if (speechSynthesis.speaking) {
+                    console.warn('SpeechSynthesis لا يزال يتحدث، تم إلغاء الطلب الجديد.');
+                    speechSynthesis.cancel(); // إلغاء الكلام الحالي قبل البدء بالجديد
+                    // قد تحتاج إلى تأخير بسيط هنا إذا كان الإلغاء فوريًا جدًا
+                    // setTimeout(() => actualSpeak(text), 50);
+                }
+                actualSpeak(text);
+            }
+
+            function actualSpeak(text) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                // محاولة اختيار صوت عربي
+                const voices = speechSynthesis.getVoices();
+                let arabicVoice = voices.find(voice => voice.lang.startsWith('ar-') && voice.name.includes('Maged')); // محاولة ايجاد صوت عربي محدد
+                if (!arabicVoice) {
+                    arabicVoice = voices.find(voice => voice.lang.startsWith('ar-'));
+                }
+
+                if (arabicVoice) {
+                    utterance.voice = arabicVoice;
+                    console.log("استخدام الصوت:", arabicVoice.name);
+                } else {
+                    utterance.lang = 'ar-SA'; // Fallback لغة إذا لم يتم العثور على صوت
+                    console.warn("لم يتم العثور على صوت عربي محدد، سيتم استخدام الصوت الافتراضي للمتصفح مع تحديد اللغة العربية.");
+                }
+                
+                utterance.pitch = 1;
+                utterance.rate = 1; // سرعة الكلام (1 طبيعي)
+
+                utterance.onend = () => {
+                    console.log("انتهى المساعد من الكلام.");
+                };
+                utterance.onerror = (event) => {
+                    console.error('خطأ في نطق الكلام:', event);
+                    statusDisplay.textContent = "حدث خطأ أثناء محاولة نطق الرد.";
+                };
+
+                speechSynthesis.speak(utterance);
+            }
+
+            // تحميل الأصوات قد يستغرق بعض الوقت في بعض المتصفحات
+            // من الجيد استدعاء getVoices مرة واحدة على الأقل أو عند تغير الأصوات
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = () => {
+                    console.log("الأصوات المتاحة تغيرت أو تم تحميلها:", speechSynthesis.getVoices().map(v => v.name + " (" + v.lang + ")"));
+                };
+            }
+             // Call it once to potentially populate the list early on some browsers
+            speechSynthesis.getVoices(); 
+
+            updateButtonState(); // Set initial button state
+        });
+    </script>
+</body>
+</html>
