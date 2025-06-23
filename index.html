@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مساعد صوتي تفاعلي</title>
+    <title>مساعد صوتي تفاعلي (ينطق كل شيء)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
 
@@ -89,7 +89,7 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            text-align: right; /* Default for Arabic */
+            text-align: right; 
         }
         
         .message-bubble {
@@ -97,22 +97,32 @@
             border-radius: var(--border-radius);
             max-width: 80%;
             word-wrap: break-word;
+            opacity: 0; /* Start hidden for animation */
+            transform: translateY(10px); /* Start slightly down for animation */
+            animation: fadeInBubble 0.3s forwards;
+        }
+
+        @keyframes fadeInBubble {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .user-message {
             background-color: #e7f3ff;
             color: #004085;
             border: 1px solid #b8daff;
-            align-self: flex-start; /* For LTR this would be user, for RTL this is assistant */
-            margin-left: auto; /* Push to right for user in RTL */
+            align-self: flex-start; 
+            margin-left: auto; 
         }
         
         .assistant-message {
             background-color: #f0f0f0;
             color: var(--dark-color);
             border: 1px solid #d6d6d6;
-            align-self: flex-end; /* For LTR this would be assistant, for RTL this is user */
-            margin-right: auto; /* Push to left for assistant in RTL */
+            align-self: flex-end; 
+            margin-right: auto; 
         }
         
         .message-bubble .label {
@@ -128,18 +138,17 @@
         }
         
         #userSaidWrapper, #assistantSaidWrapper {
-            min-height: 50px; /* Ensure space even when empty */
-            display: flex; /* To help with alignment if needed */
+            min-height: 50px; 
+            display: flex; 
         }
         
-        /* RTL specific adjustments for bubble alignment */
         html[dir="rtl"] .user-message {
-            align-self: flex-end; /* User's message on the right */
+            align-self: flex-end; 
             margin-left: 0;
             margin-right: auto;
         }
         html[dir="rtl"] .assistant-message {
-            align-self: flex-start; /* Assistant's message on the left */
+            align-self: flex-start; 
             margin-right: 0;
             margin-left: auto;
         }
@@ -153,7 +162,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>مساعد صوتي تفاعلي</h1>
+        <h1>مساعد صوتي تفاعلي (ينطق كل شيء)</h1>
         <div id="status">اضغط على "ابدأ التحدث" وتكلم...</div>
         
         <button id="startButton">ابدأ التحدث</button>
@@ -185,29 +194,33 @@
             if (!SpeechRecognition || !speechSynthesis) {
                 statusDisplay.textContent = "عذراً، متصفحك لا يدعم واجهات برمجة تطبيقات الصوت المطلوبة.";
                 startButton.disabled = true;
+                // يمكننا أيضاً نطق هذه الرسالة إذا أردنا ذلك، ولكنها رسالة تهيئة
+                // speak("عذراً، متصفحك لا يدعم واجهات برمجة تطبيقات الصوت المطلوبة."); 
                 return;
             }
 
             const recognition = new SpeechRecognition();
-            recognition.lang = 'ar-SA'; // اللغة العربية
-            recognition.interimResults = false; // لا نريد نتائج مؤقتة، فقط النهائية
-            recognition.continuous = false; // سيتوقف بعد فترة صمت واحدة
+            recognition.lang = 'ar-SA'; 
+            recognition.interimResults = false; 
+            recognition.continuous = false; 
 
             let isListening = false;
-            let lastUserTranscript = ""; // لتخزين ما قاله المستخدم
+            let lastUserTranscript = ""; 
 
             startButton.addEventListener('click', () => {
                 if (isListening) {
                     recognition.stop();
-                    // isListening and button text will be updated in onend
                 } else {
                     clearMessages();
                     try {
                         recognition.start();
                     } catch (e) {
                         console.error("خطأ عند بدء التعرف:", e);
-                        statusDisplay.textContent = "خطأ: لم يتمكن من بدء الاستماع. تأكد من سماح الميكروفون.";
-                        isListening = false; // Ensure state is correct
+                        const errorMsg = "خطأ: لم يتمكن من بدء الاستماع. تأكد من سماح الميكروفون.";
+                        statusDisplay.textContent = errorMsg;
+                        displayMessage(errorMsg, 'assistant', true);
+                        speak(errorMsg); // نطق رسالة الخطأ
+                        isListening = false; 
                         updateButtonState();
                     }
                 }
@@ -217,33 +230,34 @@
                 isListening = true;
                 updateButtonState();
                 statusDisplay.textContent = 'الآن يمكنك التحدث...';
-                clearMessages(); // Clear previous messages on new start
+                clearMessages(); 
             };
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                lastUserTranscript = transcript; // خزن النص
+                lastUserTranscript = transcript; 
                 displayMessage(transcript, 'user');
                 statusDisplay.textContent = 'تم التعرف على كلامك، جاري المعالجة...';
             };
 
             recognition.onspeechend = () => {
-                // هذا الحدث يطلق عندما يتوقف المستخدم عن الكلام
-                recognition.stop(); // أوقف التعرف رسمياً
+                recognition.stop(); 
                 statusDisplay.textContent = 'توقفت عن التحدث، انتظر الرد...';
             };
 
             recognition.onend = () => {
-                // هذا الحدث يطلق بعد onspeechend وعندما يتوقف التعرف تماماً
                 isListening = false;
                 updateButtonState();
 
                 if (lastUserTranscript) {
                     processUserSpeech(lastUserTranscript);
-                    lastUserTranscript = ""; // امسح النص بعد المعالجة
+                    lastUserTranscript = ""; 
                 } else if (!isListening && startButton.textContent.includes("أوقف")) { 
-                    // إذا لم يتم التعرف على شيء (مثلاً لم يتكلم المستخدم)
-                    statusDisplay.textContent = 'لم يتم التقاط أي كلام. اضغط للبدء من جديد.';
+                    const noSpeechMsg = 'لم يتم التقاط أي كلام. اضغط للبدء من جديد.';
+                    statusDisplay.textContent = noSpeechMsg;
+                    // إذا أردت أن ينطق المساعد هذه الرسالة أيضاً:
+                    // displayMessage(noSpeechMsg, 'assistant');
+                    // speak(noSpeechMsg);
                 }
             };
 
@@ -260,10 +274,11 @@
                     errorMessage += event.error;
                 }
                 statusDisplay.textContent = errorMessage;
-                displayMessage(errorMessage, 'assistant', true); // Display error as assistant message
+                displayMessage(errorMessage, 'assistant', true); 
+                speak(errorMessage); // *** هذا هو التعديل الرئيسي: نطق رسالة الخطأ ***
                 isListening = false;
                 updateButtonState();
-                lastUserTranscript = ""; // Clear any partial transcript
+                lastUserTranscript = ""; 
             };
 
             function updateButtonState() {
@@ -283,7 +298,7 @@
 
             function displayMessage(text, sender, isError = false) {
                 const messageWrapper = (sender === 'user') ? userSaidWrapper : assistantSaidWrapper;
-                messageWrapper.innerHTML = ''; // Clear previous message from this sender
+                messageWrapper.innerHTML = ''; 
 
                 const bubble = document.createElement('div');
                 bubble.classList.add('message-bubble');
@@ -308,9 +323,9 @@
             }
 
             function processUserSpeech(text) {
-                let responseText = "لم أفهم ما قلته. هل يمكنك المحاولة مرة أخرى؟"; // رد افتراضي
+                let responseText = "لم أفهم ما قلته. هل يمكنك المحاولة مرة أخرى؟"; 
 
-                const lowerText = text.toLowerCase(); // لتسهيل المقارنة
+                const lowerText = text.toLowerCase(); 
 
                 if (lowerText.includes("أهلا") || lowerText.includes("سلام عليكم")) {
                     responseText = "وعليكم السلام ورحمة الله! كيف حالك اليوم؟";
@@ -323,7 +338,7 @@
                     const hours = now.getHours();
                     const minutes = now.getMinutes();
                     const ampm = hours >= 12 ? 'مساءً' : 'صباحاً';
-                    const formattedHours = hours % 12 || 12; // Handle midnight (0) and noon (12)
+                    const formattedHours = hours % 12 || 12; 
                     const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
                     responseText = `الوقت الآن هو ${formattedHours}:${formattedMinutes} ${ampm}.`;
                 } else if (lowerText.includes("شكرا") || lowerText.includes("متشكر")) {
@@ -335,16 +350,19 @@
                 }
                 
                 displayMessage(responseText, 'assistant');
-                speak(responseText);
+                speak(responseText); // المساعد ينطق رده
                 statusDisplay.textContent = 'تم الرد. اضغط للبدء من جديد.';
             }
 
             function speak(text) {
+                if (!text || text.trim() === "") return; // لا تنطق نص فارغ
+
                 if (speechSynthesis.speaking) {
                     console.warn('SpeechSynthesis لا يزال يتحدث، تم إلغاء الطلب الجديد.');
-                    speechSynthesis.cancel(); // إلغاء الكلام الحالي قبل البدء بالجديد
-                    // قد تحتاج إلى تأخير بسيط هنا إذا كان الإلغاء فوريًا جدًا
-                    // setTimeout(() => actualSpeak(text), 50);
+                    speechSynthesis.cancel(); 
+                    // تأخير بسيط قد يكون مفيدًا في بعض الأحيان لضمان الإلغاء قبل البدء
+                    setTimeout(() => actualSpeak(text), 50);
+                    return;
                 }
                 actualSpeak(text);
             }
@@ -352,46 +370,41 @@
             function actualSpeak(text) {
                 const utterance = new SpeechSynthesisUtterance(text);
                 
-                // محاولة اختيار صوت عربي
                 const voices = speechSynthesis.getVoices();
-                let arabicVoice = voices.find(voice => voice.lang.startsWith('ar-') && voice.name.includes('Maged')); // محاولة ايجاد صوت عربي محدد
+                let arabicVoice = voices.find(voice => voice.lang.startsWith('ar-') && voice.name.includes('Maged')); 
                 if (!arabicVoice) {
                     arabicVoice = voices.find(voice => voice.lang.startsWith('ar-'));
                 }
 
                 if (arabicVoice) {
                     utterance.voice = arabicVoice;
-                    console.log("استخدام الصوت:", arabicVoice.name);
                 } else {
-                    utterance.lang = 'ar-SA'; // Fallback لغة إذا لم يتم العثور على صوت
-                    console.warn("لم يتم العثور على صوت عربي محدد، سيتم استخدام الصوت الافتراضي للمتصفح مع تحديد اللغة العربية.");
+                    utterance.lang = 'ar-SA'; 
                 }
                 
                 utterance.pitch = 1;
-                utterance.rate = 1; // سرعة الكلام (1 طبيعي)
+                utterance.rate = 1; 
 
                 utterance.onend = () => {
                     console.log("انتهى المساعد من الكلام.");
                 };
                 utterance.onerror = (event) => {
                     console.error('خطأ في نطق الكلام:', event);
-                    statusDisplay.textContent = "حدث خطأ أثناء محاولة نطق الرد.";
+                    // يمكنك اختيار عرض رسالة خطأ هنا أو محاولة نطق رسالة خطأ بديلة
+                    // statusDisplay.textContent = "حدث خطأ أثناء محاولة نطق الرد.";
                 };
 
                 speechSynthesis.speak(utterance);
             }
 
-            // تحميل الأصوات قد يستغرق بعض الوقت في بعض المتصفحات
-            // من الجيد استدعاء getVoices مرة واحدة على الأقل أو عند تغير الأصوات
             if (speechSynthesis.onvoiceschanged !== undefined) {
                 speechSynthesis.onvoiceschanged = () => {
-                    console.log("الأصوات المتاحة تغيرت أو تم تحميلها:", speechSynthesis.getVoices().map(v => v.name + " (" + v.lang + ")"));
+                    speechSynthesis.getVoices(); // تحديث قائمة الأصوات
                 };
             }
-             // Call it once to potentially populate the list early on some browsers
             speechSynthesis.getVoices(); 
 
-            updateButtonState(); // Set initial button state
+            updateButtonState(); 
         });
     </script>
 </body>
