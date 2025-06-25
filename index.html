@@ -3,627 +3,990 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مساعد سيف الصوتي - تصميم متطور</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>لوحة التحكم</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-hue: 210; /* درجة اللون الأزرق الأساسي */
-            --secondary-hue: 280; /* درجة اللون الأرجواني الثانوي */
-            
-            --primary-color: hsl(var(--primary-hue), 75%, 55%);
-            --primary-color-dark: hsl(var(--primary-hue), 75%, 45%);
-            --primary-color-light: hsl(var(--primary-hue), 80%, 95%);
-            
-            --secondary-color: hsl(var(--secondary-hue), 60%, 60%);
-            --secondary-color-light: hsl(var(--secondary-hue), 60%, 96%);
-
-            --text-color: hsl(var(--primary-hue), 20%, 25%);
-            --text-color-light: hsl(var(--primary-hue), 15%, 55%);
-            --bg-color: hsl(var(--primary-hue), 30%, 98%);
-            --bg-color-alt: #ffffff;
-            --border-color: hsl(var(--primary-hue), 20%, 88%);
-
-            --success-color: hsl(140, 60%, 45%);
-            --danger-color: hsl(0, 70%, 55%);
-            --info-color: hsl(190, 70%, 50%);
-
-            --font-primary: 'IBM Plex Sans Arabic', 'Cairo', sans-serif;
-            --border-radius-md: 16px;
-            --border-radius-lg: 24px;
-            --shadow-subtle: 0 4px 12px hsla(var(--primary-hue), 30%, 60%, 0.1);
-            --shadow-strong: 0 8px 24px hsla(var(--primary-hue), 30%, 50%, 0.15);
+            --primary-color: #007bff;
+            --light-color: #f8f9fa;
+            --body-bg: #f0f2f5;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --warning-color: #ffc107; /* Also used for edit buttons */
+            --edit-color: var(--warning-color);
         }
-
-        *, *::before, *::after {
-            box-sizing: border-box;
+        html { font-size: 16px; }
+        body {
+            font-family: 'Cairo', sans-serif;
             margin: 0;
             padding: 0;
-        }
-
-        body {
-            font-family: var(--font-primary);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.7;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        .main-container {
-            background-color: var(--bg-color-alt);
-            padding: 35px 40px;
-            border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow-strong);
-            width: 100%;
-            max-width: 700px; /* يمكن تعديله حسب الحاجة */
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header-title {
-            font-size: 2.4em;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-        
-        .header-subtitle {
-            font-size: 1.1em;
-            color: var(--text-color-light);
-            margin-bottom: 25px;
-        }
-
-        #status-display {
-            font-size: 1em;
-            color: var(--text-color-light);
-            margin-bottom: 25px;
-            min-height: 20px;
-            transition: color 0.3s ease;
-        }
-        #status-display.error {
-            color: var(--danger-color);
-            font-weight: 500;
-        }
-
-        .voice-orb-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 30px;
-            height: 110px; 
-        }
-
-        #voice-activity-orb {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            position: relative;
-            background-color: var(--primary-color-light);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s ease;
-            cursor: pointer; /* جعل الكرة نفسها قابلة للنقر لبدء/إيقاف */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #voice-activity-orb::before { /* الحلقة الخارجية */
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 3px solid var(--primary-color);
-            opacity: 0.3;
-            transform: scale(1.3);
-            transition: transform 0.4s ease, opacity 0.4s ease;
-        }
-        #voice-activity-orb:hover::before {
-             transform: scale(1.4);
-             opacity: 0.5;
-        }
-
-        #voice-activity-orb.listening {
-            background-color: var(--success-color);
-            transform: scale(1.1);
-        }
-        #voice-activity-orb.listening::before {
-            animation: orbPulseListening 1.5s infinite ease-in-out;
-            border-color: var(--success-color);
-        }
-
-        #voice-activity-orb.speaking {
-            background-color: var(--info-color);
-            transform: scale(1.05);
-        }
-        #voice-activity-orb.speaking::before {
-            animation: orbPulseSpeaking 1.2s infinite ease-in-out;
-            border-color: var(--info-color);
-        }
-        
-        /* أيقونة الميكروفون داخل الكرة */
-        #mic-icon {
-            width: 32px;
-            height: 32px;
-            fill: var(--primary-color); /* لون الأيقونة */
-            transition: fill 0.3s ease;
-        }
-        #voice-activity-orb.listening #mic-icon {
-            fill: #fff;
-        }
-        #voice-activity-orb.speaking #mic-icon {
-            fill: #fff;
-        }
-
-
-        @keyframes orbPulseListening {
-            0%, 100% { transform: scale(1.3); opacity: 0.3; }
-            50% { transform: scale(1.5); opacity: 0.6; }
-        }
-        @keyframes orbPulseSpeaking {
-            0%, 100% { transform: scale(1.3); opacity: 0.4; }
-            50% { transform: scale(1.45); opacity: 0.7; }
-        }
-
-        /* زر البدء/الإيقاف (اختياري، يمكن الاعتماد على الكرة) */
-        #control-button {
-            background-image: linear-gradient(to right, var(--primary-color) 0%, hsl(var(--primary-hue), 70%, 60%) 100%);
-            color: white;
-            border: none;
-            padding: 14px 35px;
-            font-size: 1.15em;
-            font-family: var(--font-primary);
-            font-weight: 600;
-            border-radius: var(--border-radius-md);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px hsla(var(--primary-hue), 50%, 50%, 0.3);
-            margin-bottom: 30px;
-        }
-        #control-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px hsla(var(--primary-hue), 50%, 50%, 0.4);
-        }
-        #control-button:active {
-            transform: translateY(0px);
-            box-shadow: 0 3px 8px hsla(var(--primary-hue), 50%, 50%, 0.2);
-        }
-        #control-button.listening {
-            background-image: linear-gradient(to right, var(--danger-color) 0%, hsl(0, 65%, 60%) 100%);
-            box-shadow: 0 4px 10px hsla(0, 50%, 50%, 0.3);
-        }
-
-
-        .chat-area {
-            display: flex;
-            flex-direction: column;
-            gap: 15px; 
-            width: 100%;
-            max-height: 35vh; 
-            overflow-y: auto;
-            padding: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-md);
-            background-color: var(--primary-color-light); 
-            margin-bottom: 25px;
-        }
-        
-        .message-bubble-wrapper {
-            display: flex;
-            width: 100%;
-        }
-        
-        .message-bubble-wrapper.user {
-            justify-content: flex-end; /* رسائل المستخدم على اليمين */
-        }
-        .message-bubble-wrapper.assistant {
-            justify-content: flex-start; /* رسائل المساعد على اليسار */
-        }
-
-        .chat-bubble {
-            padding: 12px 18px; 
-            border-radius: var(--border-radius-md);
-            max-width: 80%; 
-            word-wrap: break-word;
-            opacity: 0; 
-            transform: translateY(20px); 
-            animation: slideInBubble 0.4s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: var(--shadow-subtle);
-            position: relative; /* لإضافة سهم الفقاعة */
-        }
-
-        @keyframes slideInBubble {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .chat-bubble.user-bubble {
-            background-color: var(--primary-color);
-            color: white;
-            margin-right: 10px; /* للغة العربية */
-            border-bottom-right-radius: 4px; /* لتشكيل السهم */
-        }
-        .chat-bubble.user-bubble::after { /* السهم لفقاعة المستخدم */
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: -8px; /* للغة العربية */
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 10px 0 0 10px; /* تعديل اتجاه السهم */
-            border-color: transparent transparent transparent var(--primary-color);
-        }
-
-        .chat-bubble.assistant-bubble {
-            background-color: var(--bg-color-alt);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            margin-left: 10px; /* للغة العربية */
-            border-bottom-left-radius: 4px; /* لتشكيل السهم */
-        }
-         .chat-bubble.assistant-bubble::after { /* السهم لفقاعة المساعد */
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: -8px; /* للغة العربية */
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 10px 10px 0 0; /* تعديل اتجاه السهم */
-            border-color: transparent var(--bg-color-alt) transparent transparent;
-        }
-         /* نحتاج لخدعة بسيطة مع السهم والحد */
-        .chat-bubble.assistant-bubble::before { 
-            content: '';
-            position: absolute;
-            bottom: -1px; /* ليتداخل مع الحد */
-            left: -10px;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 11px 11px 0 0;
-            border-color: transparent var(--border-color) transparent transparent;
-            z-index: -1;
-        }
-
-
-        .chat-bubble .sender-label {
-            font-weight: 700; 
-            font-size: 0.85em;
-            display: block;
-            margin-bottom: 5px;
-            opacity: 0.8;
-        }
-        
-        .chat-bubble p.message-text {
-            margin: 0;
-            font-size: 1.05em;
+            background-color: var(--body-bg);
+            padding-bottom: 70px;
+            direction: rtl;
             line-height: 1.6;
         }
-        
-        .app-footer {
-            margin-top: 30px;
-            font-size: 0.9em;
-            color: var(--text-color-light);
+        header {
+            background-color: var(--primary-color);
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .app-footer a {
-            color: var(--primary-color);
+        .site-name { margin: 0; font-size: 1.5rem; }
+        main { padding: 1rem; }
+
+        .admin-page {
+            display: none;
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .admin-page.active { display: block; }
+        .admin-page h2 {
+            color: #333;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.75rem;
+            margin-top: 0;
+            margin-bottom: 1.25rem;
+            font-size: 1.4rem;
+        }
+        .admin-page h2 i { margin-left: 0.5rem; }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="url"],
+        .form-group input[type="number"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+        }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+
+        button.submit-btn, button.delete-btn, button.edit-btn {
+            color: #fff;
+            padding: 0.7rem 1.2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s ease;
+            margin-right: 5px;
+        }
+        button.submit-btn { background-color: var(--primary-color); }
+        button.submit-btn:hover { background-color: #0056b3; }
+
+        button.delete-btn {
+            background-color: var(--danger-color);
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+        button.delete-btn:hover { background-color: #c82333; }
+
+        button.edit-btn {
+            background-color: var(--edit-color);
+            color: #212529;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+        button.edit-btn:hover { background-color: #e0a800; }
+
+        button.submit-btn i, button.delete-btn i, button.edit-btn i { margin-left: 0.3rem; }
+
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            padding: 0.3rem 0;
+            z-index: 100;
+        }
+        .nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-decoration: none;
-            font-weight: 600;
+            color: #555;
+            padding: 0.3rem;
+            flex-grow: 1;
+            text-align: center;
         }
-        .app-footer a:hover {
+        .nav-link i { font-size: 1.25rem; }
+        .nav-link span { font-size: 0.75rem; }
+        .nav-link.active {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .table-responsive-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 1.25rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            min-width: 700px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 0.75rem;
+            text-align: right;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+        th {
+            background-color: var(--light-color);
+            font-weight: 700;
+        }
+
+        /* Categories Admin Styles */
+        .categories-admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-top: 20px;
+        }
+        .category-admin-card {
+            background-color: var(--light-color);
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        .category-admin-card img {
+            max-width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 0.75rem;
+        }
+        .category-admin-card .category-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .category-admin-card .actions-container {
+            margin-top: auto;
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        /* Products List for Admin */
+        #manage-products-page .products-list-item {
+            background-color: var(--light-color);
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        #manage-products-page .products-list-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        #manage-products-page .products-list-item .product-info {
+            flex-grow: 1;
+        }
+        #manage-products-page .products-list-item .product-info h3 {
+            margin-top: 0;
+            margin-bottom: 0.3rem;
+            font-size: 1.1rem;
+        }
+        #manage-products-page .products-list-item .product-info p {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 0.2rem;
+            word-break: break-word; /* Prevent long descriptions from breaking layout */
+        }
+        #manage-products-page .products-list-item .actions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+        }
+        .modal-content-wrapper { /* New wrapper for centering */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100%;
+            padding: 20px; /* Padding for scrollable content */
+            box-sizing: border-box;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            /* margin: 5% auto; Removed for wrapper centering */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-height: 90vh; /* Max height for scrollability */
+            overflow-y: auto; /* Enable scroll for content */
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        .close-modal-btn {
+            color: #aaa;
+            position: absolute;
+            left: 15px;
+            top: 10px;
+            font-size: 28px;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .close-modal-btn:hover,
+        .close-modal-btn:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .order-details-toggle {
+            cursor: pointer;
+            color: var(--primary-color);
             text-decoration: underline;
         }
-
-        /* Scrollbar styling */
-        .chat-area::-webkit-scrollbar {
-            width: 6px;
-        }
-        .chat-area::-webkit-scrollbar-track {
-            background: var(--primary-color-light);
-            border-radius: var(--border-radius-md);
-        }
-        .chat-area::-webkit-scrollbar-thumb {
-            background: hsl(var(--primary-hue), 30%, 75%);
-            border-radius: var(--border-radius-md);
-        }
-        .chat-area::-webkit-scrollbar-thumb:hover {
-            background: hsl(var(--primary-hue), 30%, 65%);
+        .nested-details {
+            padding: 10px;
+            margin-top: 5px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            font-size: 0.85em;
         }
 
+
+        @media (max-width: 768px) {
+            html { font-size: 15px; }
+            main { padding: 0.75rem; }
+            .admin-page { padding: 1rem; }
+            table { min-width: 0; }
+            th, td { padding: 0.5rem; font-size: 0.85rem; }
+             .modal-content { width: 95%; margin-top: 5vh; margin-bottom: 5vh;}
+        }
+        @media (max-width: 576px) {
+            html { font-size: 14px; }
+            .site-name { font-size: 1.3rem; }
+            .admin-page h2 { font-size: 1.2rem; }
+            button.submit-btn, button.delete-btn, button.edit-btn { font-size: 0.9rem; padding: 0.6rem 1rem; }
+            .nav-link i { font-size: 1.1rem; }
+            .nav-link span { font-size: 0.7rem; }
+            table thead { display: none; }
+            table tr { display: block; margin-bottom: 1rem; border: 1px solid #ddd; }
+            table td { display: block; text-align: right; border-bottom: 1px dotted #eee; }
+            table td::before { content: attr(data-label); float: right; font-weight: 700; margin-left: 10px; }
+            .status-select { width: 100%; margin-top: 5px; } /* Ensure select takes full width on small screens */
+            #manage-products-page .products-list-item { flex-direction: column; align-items: stretch; }
+            #manage-products-page .products-list-item .actions-container {
+                flex-direction: row;
+                justify-content: space-around;
+                margin-top: 0.5rem;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="main-container">
-        <h1 class="header-title">مساعد سيف الصوتي</h1>
-        <p class="header-subtitle">تجربة تفاعلية متطورة للتحكم الصوتي</p>
+    <header>
+        <h1 class="site-name">Hassan Elhoot</h1>
+    </header>
 
-        <div id="status-display">انقر على الدائرة أو الزر لبدء التحدث...</div>
+    <main>
+        <section id="upload-product-page" class="admin-page active">
+            <h2><i class="fas fa-upload"></i> رفع منتج جديد</h2>
+            <form id="upload-product-form">
+                <div class="form-group"><label for="product-title">عنوان المنتج:</label><input type="text" id="product-title" required></div>
+                <div class="form-group"><label for="product-description">وصف المنتج:</label><textarea id="product-description" required></textarea></div>
+                <div class="form-group"><label for="product-image-url1">رابط الصورة 1 (رئيسية):</label><input type="url" id="product-image-url1" required></div>
+                <div class="form-group"><label for="product-image-url2">رابط الصورة 2 (اختياري):</label><input type="url" id="product-image-url2"></div>
+                <div class="form-group"><label for="product-image-url3">رابط الصورة 3 (اختياري):</label><input type="url" id="product-image-url3"></div>
+                <div class="form-group"><label for="product-price">السعر (اختياري):</label><input type="number" id="product-price" step="0.01" min="0"></div>
+                <div class="form-group">
+                    <label for="product-category">اختر الفئة:</label>
+                    <select id="product-category" required>
+                        <option value="">-- اختر فئة --</option>
+                    </select>
+                </div>
+                <button type="submit" class="submit-btn"><i class="fas fa-plus-circle"></i> إضافة المنتج</button>
+            </form>
+        </section>
 
-        <div class="voice-orb-wrapper">
-            <div id="voice-activity-orb" title="انقر لبدء/إيقاف الاستماع">
-                <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.24 14.47 16 12 16s-4.52-1.76-4.93-4.15a1.004 1.004 0 00-.98-.85C5.45 11 5 11.45 5 12c0 3.42 2.72 6.23 6 6.72V22h2v-3.28c3.28-.49 6-3.3 6-6.72 0-.55-.45-1-1.09-1z"/></svg>
+        <section id="manage-products-page" class="admin-page">
+            <h2><i class="fas fa-box-open"></i> إدارة المنتجات</h2>
+            <div id="products-admin-display-area">
+                <p>جاري تحميل المنتجات...</p>
+            </div>
+        </section>
+
+        <section id="manage-categories-page" class="admin-page">
+            <h2><i class="fas fa-tags"></i> إدارة الفئات</h2>
+            <form id="add-category-form">
+                <div class="form-group"><label for="category-name-input">اسم الفئة الجديدة:</label><input type="text" id="category-name-input" required></div>
+                <div class="form-group"><label for="category-image-url">رابط صورة الفئة:</label><input type="url" id="category-image-url" required></div>
+                <button type="submit" class="submit-btn"><i class="fas fa-plus"></i> إضافة فئة</button>
+            </form>
+            <div id="categories-admin-display-area" class="categories-admin-grid" style="margin-top:20px;">
+                <p>جاري تحميل الفئات...</p>
+            </div>
+        </section>
+
+        <section id="view-users-page" class="admin-page">
+            <h2><i class="fas fa-users"></i> المستخدمون</h2>
+            <div class="table-responsive-wrapper">
+                <div id="users-table-container"><p>جاري تحميل المستخدمين...</p></div>
+            </div>
+        </section>
+
+        <section id="view-orders-page" class="admin-page">
+            <h2><i class="fas fa-shopping-cart"></i> الطلبات</h2>
+            <div class="table-responsive-wrapper">
+                <div id="orders-table-container"><p>جاري تحميل الطلبات...</p></div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <nav class="bottom-nav">
+            <a href="#upload-product-page" class="nav-link active" data-page="upload-product-page"><i class="fas fa-upload"></i><span>رفع منتج</span></a>
+            <a href="#manage-products-page" class="nav-link" data-page="manage-products-page"><i class="fas fa-box-open"></i><span>المنتجات</span></a>
+            <a href="#manage-categories-page" class="nav-link" data-page="manage-categories-page"><i class="fas fa-tags"></i><span>الفئات</span></a>
+            <a href="#view-users-page" class="nav-link" data-page="view-users-page"><i class="fas fa-users"></i><span>المستخدمون</span></a>
+            <a href="#view-orders-page" class="nav-link" data-page="view-orders-page"><i class="fas fa-shopping-cart"></i><span>الطلبات</span></a>
+        </nav>
+    </footer>
+
+    <!-- Edit Product Modal -->
+    <div id="edit-product-modal" class="modal">
+        <div class="modal-content-wrapper">
+            <div class="modal-content">
+                <span class="close-modal-btn" data-modal-id="edit-product-modal">×</span>
+                <h3>تعديل المنتج</h3>
+                <form id="edit-product-form">
+                    <input type="hidden" id="edit-product-id">
+                    <div class="form-group"><label for="edit-product-title">عنوان المنتج:</label><input type="text" id="edit-product-title" required></div>
+                    <div class="form-group"><label for="edit-product-description">وصف المنتج:</label><textarea id="edit-product-description" required></textarea></div>
+                    <div class="form-group"><label for="edit-product-image-url1">رابط الصورة 1:</label><input type="url" id="edit-product-image-url1" required></div>
+                    <div class="form-group"><label for="edit-product-image-url2">رابط الصورة 2:</label><input type="url" id="edit-product-image-url2"></div>
+                    <div class="form-group"><label for="edit-product-image-url3">رابط الصورة 3:</label><input type="url" id="edit-product-image-url3"></div>
+                    <div class="form-group"><label for="edit-product-price">السعر:</label><input type="number" id="edit-product-price" step="0.01" min="0"></div>
+                    <div class="form-group">
+                        <label for="edit-product-category">الفئة:</label>
+                        <select id="edit-product-category" required></select>
+                    </div>
+                    <button type="submit" class="submit-btn"><i class="fas fa-save"></i> حفظ التعديلات</button>
+                </form>
             </div>
         </div>
-        
-        <button id="control-button">ابدأ التحدث</button>
+    </div>
 
-        <div class="chat-area" id="chat-output-area">
-            <!-- فقاعات الدردشة ستظهر هنا -->
+    <!-- Edit Category Modal -->
+    <div id="edit-category-modal" class="modal">
+         <div class="modal-content-wrapper">
+            <div class="modal-content">
+                <span class="close-modal-btn" data-modal-id="edit-category-modal">×</span>
+                <h3>تعديل الفئة</h3>
+                <form id="edit-category-form">
+                    <input type="hidden" id="edit-category-id">
+                    <div class="form-group"><label for="edit-category-name">اسم الفئة:</label><input type="text" id="edit-category-name" required></div>
+                    <div class="form-group"><label for="edit-category-image-url">رابط صورة الفئة:</label><input type="url" id="edit-category-image-url" required></div>
+                    <button type="submit" class="submit-btn"><i class="fas fa-save"></i> حفظ التعديلات</button>
+                </form>
+            </div>
         </div>
     </div>
 
-    <div class="app-footer">
-        تصميم وتطوير: <a href="#" target="_blank">سيف هاني</a> | يستخدم تقنيات الويب الحديثة
-    </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const controlButton = document.getElementById('control-button');
-            const statusDisplay = document.getElementById('status-display');
-            const voiceOrb = document.getElementById('voice-activity-orb');
-            const chatOutputArea = document.getElementById('chat-output-area');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp, orderBy, query, updateDoc, onSnapshot, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const speechSynthesis = window.speechSynthesis;
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjE-2q6PONBkCin9ZN22gDp9Q8pAH9ZW8",
+            authDomain: "story-97cf7.firebaseapp.com",
+            projectId: "story-97cf7",
+            storageBucket: "story-97cf7.appspot.com",
+            messagingSenderId: "742801388214",
+            appId: "1:742801388214:web:32a305a8057b0582c5ec17",
+        };
 
-            if (!SpeechRecognition || !speechSynthesis) {
-                const errorMsg = "عذراً، متصفحك لا يدعم واجهات برمجة تطبيقات الصوت المطلوبة.";
-                statusDisplay.textContent = errorMsg;
-                statusDisplay.classList.add('error');
-                controlButton.disabled = true;
-                voiceOrb.style.cursor = 'not-allowed';
-                if (speechSynthesis && SpeechSynthesisUtterance) speak(errorMsg);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const adminNavLinks = document.querySelectorAll('footer .nav-link');
+        const adminPages = document.querySelectorAll('.admin-page');
+        const productCategorySelect = document.getElementById('product-category');
+        const editProductCategorySelect = document.getElementById('edit-product-category');
+
+        const editProductModalEl = document.getElementById('edit-product-modal');
+        const editCategoryModalEl = document.getElementById('edit-category-modal');
+
+        let currentUnsubscribe = {};
+
+        function setActivePage(pageId) {
+            Object.keys(currentUnsubscribe).forEach(key => {
+                if (key !== pageId && currentUnsubscribe[key]) {
+                    console.log(`Unsubscribing from ${key}`);
+                    currentUnsubscribe[key]();
+                    currentUnsubscribe[key] = null;
+                }
+            });
+
+            adminPages.forEach(p => p.classList.remove('active'));
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) targetPage.classList.add('active');
+
+            if (pageId === 'view-users-page' && !currentUnsubscribe[pageId]) {
+                subscribeToData('users', document.getElementById('users-table-container'), renderUsersTable, pageId, orderBy("createdAt", "desc"));
+            } else if (pageId === 'view-orders-page' && !currentUnsubscribe[pageId]) {
+                subscribeToData('orders', document.getElementById('orders-table-container'), renderOrdersTable, pageId, orderBy("orderDate", "desc"));
+            } else if (pageId === 'manage-categories-page' && !currentUnsubscribe[pageId]) {
+                subscribeToData('categories', document.getElementById('categories-admin-display-area'), renderCategoriesAdmin, pageId, orderBy("name", "asc"));
+            } else if (pageId === 'manage-products-page' && !currentUnsubscribe[pageId]) {
+                subscribeToData('products', document.getElementById('products-admin-display-area'), renderProductsAdmin, pageId, orderBy("createdAt", "desc"));
+            } else if (pageId === 'upload-product-page') {
+                loadCategoriesForProductForm();
+            }
+        }
+
+        adminNavLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                adminNavLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                setActivePage(link.getAttribute('data-page'));
+            });
+        });
+
+        async function loadCategoriesForProductForm(selectElement = productCategorySelect, selectedCategoryId = null) {
+            if (!selectElement) {
+                console.warn("Category select element not found for loading categories.");
+                return;
+            }
+            try {
+                const categoriesCol = collection(db, 'categories');
+                const q = query(categoriesCol, orderBy("name", "asc"));
+                const snapshot = await getDocs(q);
+
+                selectElement.innerHTML = '<option value="">-- اختر فئة --</option>';
+                if (snapshot.empty) {
+                    const option = document.createElement('option');
+                    option.textContent = "لا توجد فئات مضافة بعد";
+                    option.disabled = true;
+                    selectElement.appendChild(option);
+                } else {
+                    snapshot.forEach(docSnap => {
+                        const category = docSnap.data();
+                        const option = document.createElement('option');
+                        option.value = docSnap.id;
+                        option.textContent = category.name || 'فئة بدون اسم';
+                        if (selectedCategoryId === docSnap.id) {
+                            option.selected = true;
+                        }
+                        selectElement.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error("Error loading categories for form: ", error);
+                selectElement.innerHTML = '<option value="">خطأ في تحميل الفئات</option>';
+            }
+        }
+
+        document.getElementById('upload-product-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const titleEl = document.getElementById('product-title');
+            const descriptionEl = document.getElementById('product-description');
+            const imageUrl1El = document.getElementById('product-image-url1');
+            const priceEl = document.getElementById('product-price');
+
+            const title = titleEl.value.trim();
+            const description = descriptionEl.value.trim();
+            const imageUrl1 = imageUrl1El.value.trim();
+            const priceValue = priceEl.value;
+            const categoryId = productCategorySelect.value;
+
+            if (!title || !description || !imageUrl1) {
+                alert('الرجاء ملء حقول العنوان والوصف ورابط الصورة الرئيسية.');
+                return;
+            }
+            if (!categoryId) {
+                alert('الرجاء اختيار فئة للمنتج.');
                 return;
             }
 
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'ar-EG'; // يمكنك تغييرها إلى ar-SA أو غيرها
-            recognition.interimResults = false; 
-            recognition.continuous = false; 
+            const imageUrls = [
+                imageUrl1,
+                document.getElementById('product-image-url2').value.trim(),
+                document.getElementById('product-image-url3').value.trim()
+            ].filter(Boolean);
 
-            let isListening = false;
-            let lastUserTranscript = ""; 
-
-            function toggleListening() {
-                 if (speechSynthesis.speaking) {
-                    speechSynthesis.cancel(); 
-                    voiceOrb.classList.remove('speaking');
-                }
-                if (isListening) {
-                    recognition.stop(); 
-                } else {
-                    // clearChatArea(); // قد لا ترغب في مسح المحادثة بالكامل كل مرة
-                    try {
-                        recognition.start();
-                    } catch (e) {
-                        console.error("Error starting recognition:", e);
-                        const errorMsg = "خطأ: لم يتمكن من بدء الاستماع. تأكد من سماح الميكروفون.";
-                        statusDisplay.textContent = errorMsg;
-                        statusDisplay.classList.add('error');
-                        displayChatMessage(errorMsg, 'assistant', true);
-                        speak(errorMsg);
-                        isListening = false; 
-                        updateUIState();
-                    }
-                }
+            try {
+                const docRef = await addDoc(collection(db, 'products'), {
+                    title,
+                    description,
+                    imageUrls,
+                    price: priceValue ? parseFloat(priceValue) : null,
+                    categoryId,
+                    createdAt: serverTimestamp()
+                });
+                console.log("Product added with ID: ", docRef.id);
+                alert('تم رفع المنتج بنجاح!');
+                e.target.reset();
+                productCategorySelect.value = "";
+            } catch (err) {
+                console.error("Error uploading product:", err);
+                alert('حدث خطأ أثناء رفع المنتج.');
             }
-
-            controlButton.addEventListener('click', toggleListening);
-            voiceOrb.addEventListener('click', toggleListening);
-
-
-            recognition.onstart = () => {
-                isListening = true;
-                updateUIState();
-                statusDisplay.textContent = 'الآن يمكنك التحدث...';
-                statusDisplay.classList.remove('error');
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                lastUserTranscript = transcript; 
-                displayChatMessage(transcript, 'user');
-                statusDisplay.textContent = 'تم التعرف على كلامك، جاري المعالجة...';
-            };
-
-            recognition.onspeechend = () => {
-                statusDisplay.textContent = 'توقفت عن التحدث، انتظر الرد...';
-            };
-
-            recognition.onend = () => {
-                isListening = false; 
-                updateUIState(); 
-
-                if (lastUserTranscript) {
-                    processUserSpeech(lastUserTranscript);
-                    lastUserTranscript = ""; 
-                } else if (!isListening && controlButton.classList.contains('listening')) { 
-                    // إذا تم إيقاف الاستماع يدويًا ولم يتم التقاط كلام
-                    statusDisplay.textContent = 'تم إيقاف الاستماع. انقر للبدء من جديد.';
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                let errorMessage = 'حدث خطأ في التعرف: ';
-                if (event.error === 'no-speech') {
-                    errorMessage += 'لم يتم التقاط أي كلام.';
-                } else if (event.error === 'audio-capture') {
-                    errorMessage += 'مشكلة في الميكروفون. تأكد من أنه يعمل ومسموح به.';
-                } else if (event.error === 'not-allowed') {
-                    errorMessage += 'لم يتم منح الإذن لاستخدام الميكروفون.';
-                } else {
-                    errorMessage += event.error;
-                }
-                statusDisplay.textContent = errorMessage;
-                statusDisplay.classList.add('error');
-                displayChatMessage(errorMessage, 'assistant', true); 
-                speak(errorMessage); 
-                isListening = false;
-                updateUIState();
-                lastUserTranscript = ""; 
-            };
-
-            function updateUIState() {
-                if (isListening) {
-                    controlButton.textContent = 'أوقف الاستماع';
-                    controlButton.classList.add('listening');
-                    voiceOrb.classList.add('listening');
-                    voiceOrb.classList.remove('speaking'); 
-                } else {
-                    controlButton.textContent = 'ابدأ التحدث';
-                    controlButton.classList.remove('listening');
-                    voiceOrb.classList.remove('listening');
-                }
-            }
-
-            function clearChatArea() {
-                chatOutputArea.innerHTML = '';
-            }
-            
-            function scrollToBottom(element) {
-                element.scrollTop = element.scrollHeight;
-            }
-
-            function displayChatMessage(text, sender, isError = false) {
-                const wrapper = document.createElement('div');
-                wrapper.classList.add('message-bubble-wrapper', sender);
-
-                const bubble = document.createElement('div');
-                bubble.classList.add('chat-bubble');
-                bubble.classList.add(sender === 'user' ? 'user-bubble' : 'assistant-bubble');
-                
-                if (isError && sender === 'assistant') {
-                    bubble.style.backgroundColor = 'hsl(0, 80%, 95%)';
-                    bubble.style.color = 'hsl(0, 60%, 40%)';
-                    bubble.style.borderColor = 'hsl(0, 70%, 80%)';
-                    if (bubble.classList.contains('assistant-bubble')) { // تحديث لون السهم للخطأ
-                        bubble.style.setProperty('--bubble-arrow-color', 'hsl(0, 80%, 95%)');
-                        bubble.style.setProperty('--bubble-arrow-border-color', 'hsl(0, 70%, 80%)');
-                    }
-                }
-
-                const senderLabel = document.createElement('span');
-                senderLabel.classList.add('sender-label');
-                senderLabel.textContent = (sender === 'user') ? 'أنت:' : 'مساعد سيف:';
-                
-                const messageP = document.createElement('p');
-                messageP.classList.add('message-text');
-                messageP.textContent = text;
-
-                bubble.appendChild(senderLabel);
-                bubble.appendChild(messageP);
-                wrapper.appendChild(bubble);
-                chatOutputArea.appendChild(wrapper);
-                scrollToBottom(chatOutputArea); 
-            }
-
-            function processUserSpeech(text) {
-                let responseText = "عفواً، لم أفهم ما قلته. هل يمكنك المحاولة مرة أخرى بصياغة مختلفة؟"; 
-
-                const lowerText = text.toLowerCase().trim(); 
-
-                if (lowerText.includes("أهلا") || lowerText.includes("سلام عليكم") || lowerText.includes("مرحبا")) {
-                    responseText = "وعليكم السلام ورحمة الله! أهلاً بك، أنا مساعد سيف الصوتي. كيف يمكنني خدمتك اليوم؟";
-                } else if (lowerText.includes("كيف حالك") || lowerText.includes("عامل إيه") || lowerText.includes("شو أخبارك")) {
-                    responseText = "أنا بخير حال، شكراً جزيلاً لسؤالك! مستعد لمساعدتك.";
-                } else if (lowerText.includes("ما اسمك") || lowerText.includes("مين إنت")) {
-                    responseText = "أنا مساعد سيف الصوتي، تم تطويري للمساعدة في المهام الصوتية.";
-                } else if (lowerText.includes("الوقت") || lowerText.includes("الساعة كام") || lowerText.includes("كم الساعة")) {
-                    const now = new Date();
-                    responseText = `الوقت الحالي هو ${now.toLocaleTimeString('ar-EG', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
-                } else if (lowerText.includes("شكرا") || lowerText.includes("متشكر") || lowerText.includes("يعطيك العافية")) {
-                    responseText = "على الرحب والسعة! يسعدني دائماً تقديم المساعدة.";
-                } else if ((lowerText.includes("يوم") || lowerText.includes("تاريخ")) && (lowerText.includes("إيه") || lowerText.includes("اليوم"))) {
-                    const today = new Date();
-                    responseText = `تاريخ اليوم هو ${today.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
-                } else if (lowerText.includes("صباح الخير")) {
-                    responseText = "صباح النور والسرور! أتمنى لك يوماً رائعاً.";
-                } else if (lowerText.includes("مساء الخير")) {
-                    responseText = "مساء النور! كيف يمكنني أن أساعدك في هذا المساء؟";
-                }
-                
-                displayChatMessage(responseText, 'assistant');
-                speak(responseText); 
-                statusDisplay.textContent = 'تم الرد. انقر للبدء من جديد.';
-            }
-
-            function speak(text) {
-                if (!text || text.trim() === "") return; 
-
-                if (speechSynthesis.speaking) {
-                    speechSynthesis.cancel(); 
-                }
-                actualSpeak(text);
-            }
-
-            function actualSpeak(text) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                
-                // محاولة اختيار صوت عربي جيد
-                const voices = speechSynthesis.getVoices();
-                let arabicVoice = voices.find(voice => voice.lang.startsWith('ar-') && (voice.name.toLowerCase().includes('maged') || voice.localService === true));
-                if (!arabicVoice) {
-                    arabicVoice = voices.find(voice => voice.lang.startsWith('ar-'));
-                }
-
-                if (arabicVoice) {
-                    utterance.voice = arabicVoice;
-                    console.log("Using voice:", arabicVoice.name, arabicVoice.lang);
-                } else {
-                    utterance.lang = 'ar-EG'; // Fallback لغة إذا لم يتم العثور على صوت
-                    console.warn("Arabic voice not found, using default with lang ar-EG.");
-                }
-                
-                utterance.pitch = 1;
-                utterance.rate = 1; // يمكن تعديل سرعة الكلام (0.8 أبطأ، 1.2 أسرع)
-
-                utterance.onstart = () => {
-                    console.log("Assistant started speaking.");
-                    voiceOrb.classList.add('speaking');
-                    voiceOrb.classList.remove('listening'); 
-                };
-
-                utterance.onend = () => {
-                    console.log("Assistant finished speaking.");
-                    voiceOrb.classList.remove('speaking');
-                };
-                utterance.onerror = (event) => {
-                    console.error('Error in speech synthesis:', event);
-                    voiceOrb.classList.remove('speaking');
-                    statusDisplay.textContent = "خطأ في نطق الرد.";
-                    statusDisplay.classList.add('error');
-                };
-
-                speechSynthesis.speak(utterance);
-            }
-
-            // تحميل الأصوات
-            function loadVoices() {
-                const voices = speechSynthesis.getVoices();
-                if (voices.length > 0) {
-                    console.log("Available voices:", voices.map(v=> ({name: v.name, lang: v.lang, default: v.default, local: v.localService}) ));
-                }
-                // سيتم استدعاء onvoiceschanged مرة أخرى إذا تغيرت الأصوات
-            }
-
-            if (speechSynthesis.onvoiceschanged !== undefined) {
-                speechSynthesis.onvoiceschanged = loadVoices;
-            }
-            loadVoices(); // محاولة تحميلها مبدئياً
-
-            updateUIState(); 
         });
+
+        document.getElementById('add-category-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('category-name-input');
+            const imageUrlInput = document.getElementById('category-image-url');
+            const name = nameInput.value.trim();
+            const imageUrl = imageUrlInput.value.trim();
+
+            if (!name || !imageUrl) {
+                alert('الرجاء إدخال اسم الفئة ورابط الصورة.');
+                return;
+            }
+
+            try {
+                const docRef = await addDoc(collection(db, 'categories'), {
+                    name,
+                    imageUrl,
+                    createdAt: serverTimestamp()
+                });
+                console.log("Category added with ID: ", docRef.id);
+                alert(`تمت إضافة الفئة: ${name} بنجاح!`);
+                e.target.reset();
+            } catch (err) {
+                console.error("Error adding category:", err);
+                alert('حدث خطأ أثناء إضافة الفئة.');
+            }
+        });
+
+        function subscribeToData(collectionName, containerElement, renderFunction, pageKey, ...queryConstraints) {
+            if (!containerElement) {
+                console.error(`Container element for ${collectionName} not found.`);
+                return;
+            }
+            containerElement.innerHTML = '<p>جاري التحميل...</p>';
+
+            const effectiveQueryConstraints = queryConstraints.length > 0 ? queryConstraints : [];
+            const dataQuery = query(collection(db, collectionName), ...effectiveQueryConstraints);
+
+            currentUnsubscribe[pageKey] = onSnapshot(dataQuery, (snapshot) => {
+                if (snapshot.empty) {
+                    let sectionName = '';
+                    if (collectionName === 'users') sectionName = 'المستخدمين';
+                    else if (collectionName === 'orders') sectionName = 'الطلبات';
+                    else if (collectionName === 'categories') sectionName = 'الفئات';
+                    else if (collectionName === 'products') sectionName = 'المنتجات';
+                    else sectionName = collectionName;
+                    containerElement.innerHTML = `<p>لا توجد بيانات حالياً في قسم ${sectionName}.</p>`;
+                    return;
+                }
+                renderFunction(snapshot, containerElement);
+            }, (error) => {
+                console.error(`Error loading ${collectionName}: `, error);
+                let errorMessage = '<p>حدث خطأ أثناء تحميل البيانات. يرجى المحاولة مرة أخرى أو مراجعة وحدة التحكم.</p>';
+                if (error.code === 'failed-precondition' && error.message.includes('index')) {
+                     let collectionDisplayName = '';
+                     if (collectionName === 'orders') collectionDisplayName = 'الطلبات';
+                     else if (collectionName === 'products') collectionDisplayName = 'المنتجات';
+                     else if (collectionName === 'categories') collectionDisplayName = 'الفئات';
+                     else if (collectionName === 'users') collectionDisplayName = 'المستخدمين';
+                     else collectionDisplayName = collectionName;
+
+                     errorMessage = `<p style="color:red; font-weight:bold;">خطأ في الفهرس للوصول إلى بيانات "${collectionDisplayName}".</p>
+                                     <p>عادةً، هذا يعني أن Firestore يتطلب فهرسًا مركبًا لم يتم إنشاؤه بعد. </p>
+                                     <p>يرجى فتح وحدة تحكم المتصفح (Browser Console) للبحث عن رسالة خطأ تحتوي على رابط مباشر لإنشاء هذا الفهرس في لوحة تحكم Firebase.</p>
+                                     <p>رسالة الخطأ الأصلية: ${error.message}</p>`;
+                }
+                containerElement.innerHTML = errorMessage;
+            });
+        }
+
+        function renderUsersTable(snapshot, container) {
+            let html = '<table><thead><tr><th>الاسم</th><th>الهاتف</th><th>المحافظة</th><th>المدينة</th><th>تفاصيل العنوان</th><th>تاريخ التسجيل</th></tr></thead><tbody>';
+            snapshot.forEach(doc => {
+                const u = doc.data();
+                const registrationDate = u.createdAt?.toDate() ? u.createdAt.toDate().toLocaleDateString('ar-EG', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'غير محدد';
+                html += `<tr>
+                            <td data-label="الاسم:">${u.name || 'غير متوفر'}</td>
+                            <td data-label="الهاتف:">${u.phone || 'غير متوفر'}</td>
+                            <td data-label="المحافظة:">${u.governorate || 'غير محددة'}</td>
+                            <td data-label="المدينة:">${u.city || 'غير محددة'}</td>
+                            <td data-label="تفاصيل العنوان:">${u.details || '-'}</td>
+                            <td data-label="تاريخ التسجيل:">${registrationDate}</td>
+                         </tr>`;
+            });
+            container.innerHTML = html + '</tbody></table>';
+        }
+
+        function renderCategoriesAdmin(snapshot, container) {
+            let html = '';
+            if (snapshot.empty) { container.innerHTML = '<p>لم يتم إضافة أي فئات بعد.</p>'; return; }
+            snapshot.forEach(docSnap => {
+                const category = docSnap.data();
+                const categoryId = docSnap.id;
+                const imageUrl = category.imageUrl || 'https://via.placeholder.com/200x150?text=فئة';
+                html += `
+                    <div class="category-admin-card">
+                        <img src="${imageUrl}" alt="${category.name || 'فئة'}">
+                        <p class="category-name">${category.name || 'فئة بدون اسم'}</p>
+                        <div class="actions-container">
+                            <button class="edit-btn edit-category-btn" data-id="${categoryId}"><i class="fas fa-edit"></i> تعديل</button>
+                            <button class="delete-btn delete-category-btn" data-id="${categoryId}"><i class="fas fa-trash-alt"></i> مسح</button>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+            attachDeleteListeners('.delete-category-btn', 'categories', 'الفئة');
+            attachEditCategoryListeners();
+        }
+
+        function renderProductsAdmin(snapshot, container) {
+            let html = '';
+            if (snapshot.empty) { container.innerHTML = '<p>لم يتم إضافة أي منتجات بعد.</p>'; return; }
+            snapshot.forEach(docSnap => {
+                const product = docSnap.data();
+                const productId = docSnap.id;
+                const mainImageUrl = (Array.isArray(product.imageUrls) && product.imageUrls.length > 0)
+                                    ? product.imageUrls[0]
+                                    : 'https://via.placeholder.com/80?text=منتج';
+                const priceDisplay = product.price ? `${product.price} ج.م` : 'غير محدد';
+
+                html += `
+                    <div class="products-list-item">
+                        <img src="${mainImageUrl}" alt="${product.title || 'منتج'}">
+                        <div class="product-info">
+                            <h3>${product.title || 'منتج بدون عنوان'}</h3>
+                            <p><strong>السعر:</strong> ${priceDisplay}</p>
+                            <p><strong>الوصف:</strong> ${ (product.description && product.description.length > 50) ? product.description.substring(0, 50) + '...' : (product.description || '-') }</p>
+                        </div>
+                        <div class="actions-container">
+                             <button class="edit-btn edit-product-btn" data-id="${productId}"><i class="fas fa-edit"></i> تعديل</button>
+                             <button class="delete-btn delete-product-btn" data-id="${productId}"><i class="fas fa-trash-alt"></i> مسح</button>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+            attachDeleteListeners('.delete-product-btn', 'products', 'المنتج');
+            attachEditProductListeners();
+        }
+
+        function renderOrdersTable(snapshot, container) {
+            let html = '<table><thead><tr><th>رقم الطلب</th><th>صورة المنتج</th><th>اسم المنتج</th><th>الكمية</th><th>الحالة</th><th>تاريخ الطلب</th><th>تفاصيل العميل</th></tr></thead><tbody>';
+            snapshot.forEach(docSnap => {
+                const o = docSnap.data();
+                const id = docSnap.id;
+                const orderDate = o.orderDate?.toDate() ? o.orderDate.toDate().toLocaleString('ar-EG',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit', hour12: true}) : 'غير محدد';
+
+                html += `
+                    <tr>
+                        <td data-label="رقم الطلب:">${id.substring(0,8)}...</td>
+                        <td data-label="صورة المنتج:"><img src="${o.productImageUrl || 'https://via.placeholder.com/40x40?text=N/A'}" alt="${o.productTitle || 'منتج'}" style="width:40px;height:40px;object-fit:cover;border-radius:3px;"></td>
+                        <td data-label="اسم المنتج:">${o.productTitle || 'غير متوفر'}</td>
+                        <td data-label="الكمية:">${o.quantity || '1'}</td>
+                        <td data-label="الحالة:">
+                            <select class="status-select" data-order-id="${id}" aria-label="تغيير حالة الطلب">
+                                <option value="قيد المراجعة" ${o.status === 'قيد المراجعة' ? 'selected' : ''}>قيد المراجعة</option>
+                                <option value="تم الموافقة" ${o.status === 'تم الموافقة' ? 'selected' : ''}>تم الموافقة</option>
+                                <option value="تم الرفض" ${o.status === 'تم الرفض' ? 'selected' : ''}>تم الرفض</option>
+                                <option value="تم الشحن" ${o.status === 'تم الشحن' ? 'selected' : ''}>تم الشحن</option>
+                                <option value="تم التسليم" ${o.status === 'تم التسليم' ? 'selected' : ''}>تم التسليم</option>
+                                <option value="ملغى من قبل المستخدم" ${o.status === 'ملغى من قبل المستخدم' ? 'selected' : ''} disabled>ملغى من المستخدم</option>
+                                <option value="ملغى من الإدارة" ${o.status === 'ملغى من الإدارة' ? 'selected' : ''}>ملغى من الإدارة</option>
+                            </select>
+                        </td>
+                        <td data-label="تاريخ الطلب:">${orderDate}</td>
+                        <td data-label="تفاصيل العميل:">
+                            <span class="order-details-toggle" data-order-id="${id}" role="button" tabindex="0">عرض التفاصيل</span>
+                            <div class="nested-details" id="details-${id}" style="display: none;">
+                                <strong>الاسم:</strong> ${o.customerDetails?.name || 'غير متوفر'}<br>
+                                <strong>الهاتف:</strong> ${o.customerDetails?.phone || 'غير متوفر'}<br>
+                                <strong>المحافظة:</strong> ${o.customerDetails?.governorate || 'غير محددة'}<br>
+                                <strong>المدينة:</strong> ${o.customerDetails?.city || 'غير محددة'}<br>
+                                <strong>تفاصيل العنوان:</strong> ${o.customerDetails?.details || '-'}
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+            container.innerHTML = html + '</tbody></table>';
+
+            container.querySelectorAll('.order-details-toggle').forEach(el => {
+                const newEl = el.cloneNode(true);
+                el.parentNode.replaceChild(newEl, el); // Replace original with clone to ensure single listener attachment
+                const orderId = newEl.dataset.orderId;
+
+                const toggleAction = function() {
+                    const detailsDiv = document.getElementById(`details-${orderId}`); // Find globally or scope to table container
+                    if (detailsDiv) {
+                        if (detailsDiv.style.display === 'none' || detailsDiv.style.display === '') {
+                            detailsDiv.style.display = 'block';
+                            newEl.textContent = 'إخفاء التفاصيل';
+                        } else {
+                            detailsDiv.style.display = 'none';
+                            newEl.textContent = 'عرض التفاصيل';
+                        }
+                    } else {
+                        console.warn(`Details div with ID 'details-${orderId}' not found.`);
+                    }
+                };
+
+                newEl.addEventListener('click', toggleAction);
+                newEl.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleAction();
+                    }
+                });
+            });
+
+            container.querySelectorAll('.status-select').forEach(el => {
+                const newEl = el.cloneNode(true);
+                el.parentNode.replaceChild(newEl, el); // Replace original with clone
+
+                newEl.addEventListener('change', async function() {
+                    const orderId = this.dataset.orderId;
+                    const newStatus = this.value;
+                    let originalStatusValue;
+
+                    try {
+                        const orderDoc = await getDoc(doc(db, 'orders', orderId));
+                        if (orderDoc.exists()) {
+                            originalStatusValue = orderDoc.data().status;
+                        } else {
+                            console.error(`Order doc ${orderId} not found for status revert.`);
+                            alert('خطأ: الطلب غير موجود.');
+                            return;
+                        }
+                    } catch (fetchError) {
+                        console.error("Error fetching original status:", fetchError);
+                        alert('خطأ في جلب الحالة الأصلية للطلب.');
+                        return;
+                    }
+
+                    try {
+                        await updateDoc(doc(db, 'orders', orderId), { status: newStatus });
+                        // console.log(`Order ${orderId} status updated to ${newStatus}`);
+                    } catch (err) {
+                        console.error("Error updating order status:", err);
+                        alert('حدث خطأ أثناء تحديث حالة الطلب. سيتم استرجاع الحالة السابقة.');
+                        this.value = originalStatusValue; // Revert select value in UI
+                    }
+                });
+            });
+        }
+
+
+        function attachDeleteListeners(selector, collectionName, itemNameSingular) {
+            document.querySelectorAll(selector).forEach(button => {
+                const newButton = button.cloneNode(true); // Clone to remove old listeners
+                button.parentNode.replaceChild(newButton, button);
+                newButton.addEventListener('click', async function() {
+                    const itemId = this.dataset.id;
+                    if (confirm(`هل أنت متأكد من مسح هذا الـ${itemNameSingular} (ID: ${itemId.substring(0,6)}...)?`)) {
+                        try {
+                            await deleteDoc(doc(db, collectionName, itemId));
+                            alert(`تم مسح الـ${itemNameSingular} بنجاح.`);
+                        } catch (err) {
+                            console.error(`Error deleting ${itemNameSingular}:`, err);
+                            alert(`حدث خطأ أثناء مسح الـ${itemNameSingular}.`);
+                        }
+                    }
+                });
+            });
+        }
+
+        // --- MODAL HANDLING ---
+        document.querySelectorAll('.close-modal-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modalId = this.dataset.modalId;
+                if (modalId && document.getElementById(modalId)) {
+                     document.getElementById(modalId).style.display = 'none';
+                }
+            });
+        });
+
+        window.addEventListener('click', (event) => { // Changed from onclick to addEventListener
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+            }
+        });
+
+        // --- EDIT CATEGORY ---
+        function attachEditCategoryListeners() {
+            document.querySelectorAll('.edit-category-btn').forEach(button => {
+                 const newButton = button.cloneNode(true); // Clone to remove old listeners
+                 button.parentNode.replaceChild(newButton, button);
+                 newButton.addEventListener('click', async function() {
+                    const categoryId = this.dataset.id;
+                    if (!editCategoryModalEl) { console.error("Edit category modal not found"); return; }
+                    try {
+                        const categoryDocRef = doc(db, 'categories', categoryId);
+                        const categoryDocSnap = await getDoc(categoryDocRef);
+                        if (categoryDocSnap.exists()) {
+                            const data = categoryDocSnap.data();
+                            document.getElementById('edit-category-id').value = categoryId;
+                            document.getElementById('edit-category-name').value = data.name || '';
+                            document.getElementById('edit-category-image-url').value = data.imageUrl || '';
+                            editCategoryModalEl.style.display = 'block';
+                        } else {
+                            alert('الفئة غير موجودة.');
+                        }
+                    } catch (err) {
+                        console.error("Error fetching category for edit:", err);
+                        alert('خطأ في جلب بيانات الفئة للتعديل.');
+                    }
+                });
+            });
+        }
+
+        document.getElementById('edit-category-form')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const categoryId = document.getElementById('edit-category-id').value;
+            const name = document.getElementById('edit-category-name').value.trim();
+            const imageUrl = document.getElementById('edit-category-image-url').value.trim();
+
+            if (!categoryId) { alert('خطأ: لم يتم تحديد الفئة.'); return; }
+            if (!name || !imageUrl) {
+                alert('الرجاء ملء جميع حقول تعديل الفئة.');
+                return;
+            }
+            try {
+                await updateDoc(doc(db, 'categories', categoryId), { name, imageUrl });
+                alert('تم تحديث الفئة بنجاح!');
+                if (editCategoryModalEl) editCategoryModalEl.style.display = 'none';
+            } catch (err) {
+                console.error("Error updating category:", err);
+                alert('حدث خطأ أثناء تحديث الفئة.');
+            }
+        });
+
+        // --- EDIT PRODUCT ---
+        function attachEditProductListeners() {
+            document.querySelectorAll('.edit-product-btn').forEach(button => {
+                 const newButton = button.cloneNode(true); // Clone to remove old listeners
+                 button.parentNode.replaceChild(newButton, button);
+                 newButton.addEventListener('click', async function() {
+                    const productId = this.dataset.id;
+                    if (!editProductModalEl) { console.error("Edit product modal not found"); return; }
+
+                    try {
+                        const productDocRef = doc(db, 'products', productId);
+                        const productDocSnap = await getDoc(productDocRef);
+                        if (productDocSnap.exists()) {
+                            const data = productDocSnap.data();
+                            document.getElementById('edit-product-id').value = productId;
+                            document.getElementById('edit-product-title').value = data.title || '';
+                            document.getElementById('edit-product-description').value = data.description || '';
+                            document.getElementById('edit-product-image-url1').value = data.imageUrls?.[0] || '';
+                            document.getElementById('edit-product-image-url2').value = data.imageUrls?.[1] || '';
+                            document.getElementById('edit-product-image-url3').value = data.imageUrls?.[2] || '';
+                            document.getElementById('edit-product-price').value = data.price || '';
+
+                            if (editProductCategorySelect) { // Ensure the select element exists
+                                await loadCategoriesForProductForm(editProductCategorySelect, data.categoryId);
+                            } else {
+                                console.error("Edit product category select element not found.");
+                            }
+                            editProductModalEl.style.display = 'block';
+                        } else {
+                            alert('المنتج غير موجود.');
+                        }
+                    } catch (err) {
+                        console.error("Error fetching product for edit:", err);
+                        alert('خطأ في جلب بيانات المنتج للتعديل.');
+                    }
+                });
+            });
+        }
+
+        document.getElementById('edit-product-form')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const productId = document.getElementById('edit-product-id').value;
+            const title = document.getElementById('edit-product-title').value.trim();
+            const description = document.getElementById('edit-product-description').value.trim();
+            const imageUrl1 = document.getElementById('edit-product-image-url1').value.trim();
+            const priceValue = document.getElementById('edit-product-price').value;
+            const categoryId = editProductCategorySelect ? editProductCategorySelect.value : null;
+
+            if (!productId) { alert('خطأ: لم يتم تحديد المنتج.'); return; }
+            if (!title || !description || !imageUrl1 || !categoryId) {
+                alert('الرجاء ملء حقول العنوان، الوصف، الصورة الرئيسية، واختيار الفئة.');
+                return;
+            }
+            const imageUrls = [imageUrl1, document.getElementById('edit-product-image-url2').value.trim(), document.getElementById('edit-product-image-url3').value.trim()].filter(Boolean);
+
+            try {
+                await updateDoc(doc(db, 'products', productId), {
+                    title, description, imageUrls,
+                    price: priceValue ? parseFloat(priceValue) : null,
+                    categoryId
+                });
+                alert('تم تحديث المنتج بنجاح!');
+                 if (editProductModalEl) editProductModalEl.style.display = 'none';
+            } catch (err) {
+                console.error("Error updating product:", err);
+                alert('حدث خطأ أثناء تحديث المنتج.');
+            }
+        });
+
+        window.onload = () => {
+            const activeLink = document.querySelector('footer .nav-link.active');
+            setActivePage(activeLink ? activeLink.getAttribute('data-page') : 'upload-product-page');
+        };
     </script>
 </body>
 </html>
